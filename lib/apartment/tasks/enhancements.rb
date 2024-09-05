@@ -7,7 +7,12 @@ module Apartment
   class RakeTaskEnhancer
     module TASKS
       ENHANCE_BEFORE = %w[db:drop].freeze
-      ENHANCE_AFTER  = %w[db:migrate db:rollback db:migrate:up db:migrate:down db:migrate:redo db:seed].freeze
+      # RINSED: Hacky workaround for multi-db support
+      ENHANCE_AFTER  = %w[
+        db:migrate db:rollback db:migrate:up db:migrate:down db:migrate:redo
+        db:migrate:primary db:rollback:primary db:migrate:up:primary db:migrate:down:primary db:migrate:redo:primary
+        db:seed
+      ].freeze
       freeze
     end
 
@@ -46,7 +51,9 @@ module Apartment
       end
 
       def inserted_task_name(task)
-        task.name.sub(/db:/, 'apartment:')
+        task.name
+          .sub(/db:/, 'apartment:')
+          .sub(/:primary/, '') # RINSED: Hacky workaround for multi-db support
       end
     end
   end
